@@ -54,6 +54,14 @@ class FunSetSuite extends FunSuite {
     assert(contains(x => true, 100))
   }
 
+  test("contains is good") {
+    assert(contains(x => x % 2 == 0, 6))
+    assert(!contains(x => x % 2 == 0, 3))
+
+    assert(contains(x => x % 2 == 1, 3))
+    assert(!contains(x => x % 2 == 1, 6))
+  }
+
   /**
    * When writing tests, one would often like to re-use certain values for multiple
    * tests. For instance, we would like to create an Int-set and have multiple test
@@ -77,6 +85,9 @@ class FunSetSuite extends FunSuite {
     val s1 = singletonSet(1)
     val s2 = singletonSet(2)
     val s3 = singletonSet(3)
+
+    val s4: Set = x => x % 3 == 0
+    val s5: Set = x => x % 2 == 0
   }
 
   /**
@@ -110,5 +121,54 @@ class FunSetSuite extends FunSuite {
     }
   }
 
+  test("intersect contains common elements") {
+    new TestSets {
+      val s = intersect(s4, s5)
+      assert(contains(s, 6), "Union 1")
+      assert(!contains(s, 3), "Union 3")
+    }
+  }
 
+  test("diff contains first but not second") {
+    new TestSets {
+      val s = diff(s4, s5)
+      assert(contains(s, 3), "Union 1")
+      assert(!contains(s, 6), "Union 3")
+    }
+  }
+
+  test("filter by max value") {
+    new TestSets {
+      val s = filter(s4, x => x <= 100)
+      assert(contains(s, 3), "Union 1")
+      assert(!contains(s, 102), "Union 3")
+    }
+  }
+
+  test("not all dividable by 3 are even") {
+    new TestSets {
+      val s = forall(s4, x => x % 2 == 0)
+      assert(s === false)
+    }
+  }
+
+  test("exists even among dividable by 3") {
+    new TestSets {
+      val s = exists(s4, x => x % 2 == 0)
+      assert(s === true)
+    }
+  }
+
+  test("squares of even") {
+    new TestSets {
+      val s = map(s5, x => x * x)
+      assert(contains(s, 4), "Union 1")
+      assert(contains(s, 16), "Union 1")
+      assert(contains(s, 36), "Union 1")
+      assert(contains(s, 64), "Union 1")
+      assert(contains(s, 100), "Union 1")
+
+      assert(!contains(s, 2))
+    }
+  }
 }
