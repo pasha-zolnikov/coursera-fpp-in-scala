@@ -1,8 +1,6 @@
 package objsets
 
-import TweetReader._
-
-import scala.annotation.tailrec
+import objsets.TweetReader._
 
 /**
   * A class to represent tweets.
@@ -281,7 +279,5 @@ object GoogleVsApple {
 
 object Main extends App {
   // Print the trending tweets
-  //GoogleVsApple.trending foreach println
-
-  allTweets foreach println
+  GoogleVsApple.trending foreach println
 }
