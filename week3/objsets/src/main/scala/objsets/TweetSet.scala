@@ -2,6 +2,8 @@ package objsets
 
 import TweetReader._
 
+import scala.annotation.tailrec
+
 /**
   * A class to represent tweets.
   */
@@ -47,6 +49,8 @@ abstract class TweetSet {
   def filter(p: Tweet => Boolean): TweetSet = filterAcc(p, new Empty)
 
   val isEmpty: Boolean
+
+  def elem: Tweet
 
   /**
     * This is a helper method for `filter` that propagetes the accumulated tweets.
@@ -113,7 +117,6 @@ abstract class TweetSet {
 
 class Empty extends TweetSet {
   def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = acc
-
   /**
     * The following methods are already implemented
     */
@@ -157,13 +160,17 @@ class Empty extends TweetSet {
   def descendingByRetweet: TweetList = Nil
 
   val isEmpty: Boolean = true
+
+  override def elem: Tweet = null
 }
 
-class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
+class NonEmpty(val elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
 
-  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet =
-    if (p(elem)) new NonEmpty(elem, filterAcc(p, right), filterAcc(p, left))
-    else filterAcc(p, right) union filterAcc(p, left)
+  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = {
+    val filteredLeftRightUnion = right.filterAcc(p, left.filterAcc(p, acc))
+    if (p(elem)) filteredLeftRightUnion incl elem
+    else filteredLeftRightUnion
+  }
 
 
   /**
@@ -198,8 +205,9 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
     * Question: Should we implement this method here, or should it remain abstract
     * and be implemented in the subclasses?
     */
-  def union(that: TweetSet): TweetSet =
-    ((left union right) union that) incl elem
+  def union(that: TweetSet): TweetSet = {
+    left union (right union (that incl elem))
+  }
 
   /**
     * Returns the tweet from this set which has the greatest retweet count.
@@ -268,10 +276,12 @@ object GoogleVsApple {
     * A list of all tweets mentioning a keyword from either apple or google,
     * sorted by the number of retweets.
     */
-  lazy val trending: TweetList = (googleTweets union allTweets).descendingByRetweet
+  lazy val trending: TweetList = (googleTweets union appleTweets).descendingByRetweet
 }
 
 object Main extends App {
   // Print the trending tweets
-  GoogleVsApple.trending foreach println
+  //GoogleVsApple.trending foreach println
+
+  allTweets foreach println
 }
